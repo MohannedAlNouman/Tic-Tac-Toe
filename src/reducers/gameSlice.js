@@ -10,11 +10,15 @@ export const gameSlice = createSlice({
     ],
     mark: "X",
     status: "In progress",
-    moves: 0
+    moves: 0,
+    winningSquares: []
   },
   reducers: {
     updateBoard: (state, action) => {
-      let [row, col] = [action.payload.row, action.payload.col];
+      let [row, col] = [
+        parseInt(action.payload.row),
+        parseInt(action.payload.col)
+      ];
       let mark = state.mark;
 
       //checks if current cell is empty and if the game is still in progress (as opposed to someone winning or a draw)
@@ -35,6 +39,12 @@ export const gameSlice = createSlice({
           if (state.board[r][col] == mark) {
             if (r == 2) {
               victorFound = true;
+              state.winningSquares = [
+                ...state.winningSquares,
+                [r, col],
+                [r - 1, col],
+                [r - 2, col]
+              ];
             }
           } else {
             break;
@@ -42,10 +52,16 @@ export const gameSlice = createSlice({
         }
 
         //checks for horizontal victories
-        for (let c = 0; !victorFound && c < 3; c++) {
+        for (let c = 0; c < 3; c++) {
           if (state.board[row][c] == mark) {
             if (c == 2) {
               victorFound = true;
+              state.winningSquares = [
+                ...state.winningSquares,
+                [row, c],
+                [row, c - 1],
+                [row, c - 2]
+              ];
             }
           } else {
             break;
@@ -53,31 +69,30 @@ export const gameSlice = createSlice({
         }
 
         //checks for diagonal victories
-        if (!victorFound && (row + col) % 2 == 0) {
-          console.log(`row is ${row}`)
-          console.log(`col is ${col}`)
-          if (row == 1 && col == 1) {
-            console.log("checking center tile")
-            if (
-              (state.board[0][0] == mark && state.board[2][2] == mark) ||
-              (state.board[0][2] == mark && state.board[2][0] == mark)
-            ) {
-              victorFound = true;
-            }
-          } else if (row == col) {
-            console.log("checking downwards diagnol")
-            if (
-              state.board[(row + 1) % 3][(col + 1) % 3] == mark &&
-              state.board[(row + 2) % 3][(col + 2) % 3] == mark
-            ) {
-              victorFound = true;
-            }
-          } else if (
-            state.board[(row + 1) % 3][Math.abs((col - 1) % 3)] == mark &&
-            state.board[(row + 2) % 3][Math.abs((col - 2) % 3)] == mark
-          ) {
-            victorFound = true;
-          }
+        if (
+          state.board[0][0] == mark &&
+          state.board[1][1] == mark &&
+          state.board[2][2] == mark
+        ) {
+          victorFound = true;
+          state.winningSquares = [
+            ...state.winningSquares,
+            [0, 0],
+            [1, 1],
+            [2, 2]
+          ];
+        } else if (
+          state.board[0][2] == mark &&
+          state.board[1][1] == mark &&
+          state.board[2][0] == mark
+        ) {
+          victorFound = true;
+          state.winningSquares = [
+            ...state.winningSquares,
+            [0, 2],
+            [1, 1],
+            [2, 0]
+          ];
         }
 
         //announces victor if any, or draw if 9 moves have been played
@@ -97,13 +112,15 @@ export const gameSlice = createSlice({
       state.mark = "X";
       state.status = "In progress";
       state.moves = 0;
+      state.winningSquares = []
     }
   }
 });
 
 const selectBoard = state => state.game.board;
 const selectStatus = state => state.game.status;
-export {selectBoard, selectStatus};
+const selectWinningSquares = state => state.game.winningSquares;
+export {selectBoard, selectStatus, selectWinningSquares};
 
 export const {updateBoard, resetBoard} = gameSlice.actions;
 

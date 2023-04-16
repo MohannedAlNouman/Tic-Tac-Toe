@@ -14,3 +14,7 @@ td {
   text-align: center;
   font-size: clamp(65px, 5vw, 90px);
 }
+
+.victor {
+  background-color: yellow;
+}
